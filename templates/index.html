@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ML Prediction</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        #upload {
+            display: none;
+        }
+        #predict {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-slider">
+        <button onclick="showPage('predict')">Home</button>
+        <button onclick="showPage('upload')">Image</button>
+    </div>
+
+    <div id="predict" class="page">
+        <h1>Predict Cattle Weight</h1>
+        <div class="form-container">
+            <form id="predictForm">
+                <label>Oblique Body Length (cm):</label>
+                <input type="number" name="oblique_length" required>
+                <label>Withers Height (cm):</label>
+                <input type="number" name="withers_height" required>
+                <label>Heart Girth (cm):</label>
+                <input type="number" name="heart_girth" required>
+                <button type="submit">Predict</button>
+            </form>
+            <img src="https://img2.pic.in.th/pic/detail_F.md.jpg" 
+     alt="Cattle" 
+     width="800" 
+     height="500" 
+     style="float: right; margin-right: 100px; margin-top: 50px;">
+      </div>
+        
+        <div id="predictionResult" style="display: none;">
+            <h3>Prediction Result</h3>
+            <p id="prediction"></p>
+        </div>
+    </div>
+    
+    <div id="upload" class="page">
+        <h1>Upload Cattle Image</h1>
+        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <button type="submit">Upload</button>
+        </form>
+
+        <div id="uploadResult" style="display: none;">
+            <h3>Prediction Result</h3>
+            <p id="uploadMessage"></p>
+            <!-- <h3>Uploaded Image</h3> -->
+            <img id="uploadedImage" src="" alt="Uploaded Image" style="max-width: 100%; height: auto; margin-top: 20px;">
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("predictForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch("/predict", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById("predictionResult");
+                const predictionText = document.getElementById("prediction");
+                resultDiv.style.display = "block";
+                predictionText.textContent = `Cattle Weight: ${data.prediction[0].toFixed(2)} KG`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById("uploadForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch("/upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById("uploadResult");
+                const uploadMessage = document.getElementById("uploadMessage");
+                const uploadedImage = document.getElementById("uploadedImage");
+                
+                resultDiv.style.display = "block";
+                uploadMessage.textContent = `Cattle Weight: ${data.prediction[0].toFixed(2)} KG`;
+                uploadedImage.src = data.image_url;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        function showPage(page) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(p => p.style.display = 'none');
+            document.getElementById(page).style.display = 'block';
+        }
+    </script>
+</body>
+</html>
